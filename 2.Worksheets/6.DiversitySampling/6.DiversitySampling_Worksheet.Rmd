@@ -1,6 +1,6 @@
 ---
 title: '6\. Worksheet: Diversity Sampling'
-author: "Student Name; Z620: Quantitative Biodiversity, Indiana University"
+author: "Brooke Peckenpaugh; Z620: Quantitative Biodiversity, Indiana University"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
 geometry: margin=2.54cm
@@ -38,16 +38,39 @@ Create one (and only one, although it can have multiple panels) *publication qua
 Make sure to annotate your code using # symbols so others (including instructors) understand what you have done and why you have done it. 
 
 ```{r}
+library(vegan)
+jb <- read.table("JellyBeans.txt", sep="\t", header=T)
 
+# Calculate observed richness at each site
+S.obs <- function(x = ""){
+  rowSums(x > 0) * 1
+}
 
+diversity<- S.obs(jb[,4:ncol(jb)])
 
+# Determine sample sizes
+samplesizes <- rowSums(jb[,4:ncol(jb)])
 
+# Create data frame and order by sample size
+df <- data.frame(samplesizes,diversity,jb$Site, jb$Group)
+df <- df[order(df$samplesizes, decreasing=F),]
+
+# Plot
+palette(c('gray50', 'lightblue'))
+barplot(df$diversity, ylab="Observed Richness", xlab="Site (ordered by sample size)", names.arg=df$jb.Site, col=df$jb.Group, border=NA, cex.names=0.7, ylim=c(0, 28), cex.axis = 1, cex.lab=1.2)
+
+abline(0,0,lty=1, lwd=1.5)
+
+legend(0.2, 28, legend=c("Group A", "Group B"), fill=c('gray50', 'lightblue'))
 ```
 
 ## 3) Figure caption 
 
 Write an informative yet succicnt (~5 sentences) caption that creates a "stand-alone" figure. 
 Take a peek at figures and figure captions in a paper published in your favorite journal for inspiration.
+
+> Observed richness across sites, shown in increasing order of sample sizes. Sample sizes range from 56 (Mark) to 79 (Emmi). Grey bars are sites in Group A and blue bars are sites in Group B. There is a slight positive association in this data between sample size and species richness, with no obvious difference between groups.
+
 
 ## SUBMITTING YOUR ASSIGNMENT
 Use Knitr to create a PDF of your completed 6.DiversisitySampling_Worksheet.Rmd document, push it to GitHub, and create a pull request.
