@@ -294,22 +294,27 @@ setwd("~/GitHub/QB2019_Peckenpaugh/2.Worksheets/6.DiversitySampling")
 jb <- read.table("JellyBeans.txt", sep="\t", header=T)
 jbsource <- read.table("JellyBeans.Source.txt", sep="\t", header=T)
 
+#Adjusting jelly bean data to conform to source data labels
 jb$GreenTrans <- jb$GreenTrans + jb$GreenTrans2
 jb <- jb[-15]
 jb$Rainbow <- jb$Rainbow + jb$WhiteSolid
 jb <- jb[-29]
 
+#Dividing data into groups, getting rid of factors
 jb.a <- subset(jb, Group == "A")
 jb.b <- subset(jb, Group == "B")
 
 jb.a <- jb.a[3:28]
 jb.b <- jb.b[3:28]
 
+#Creating resemblance matrices for groups A and B
 jb.rm.a <- vegdist(jb.a, method = "bray")
 jb.rm.b <- vegdist(jb.b, method = "bray")
 
+#T test for groups A and B
 t.test(jb.rm.a, jb.rm.b)
 
+#Reformatting jelly bean source data for Bray-Curtis dissimilarity. Also reordering the columns to match student jelly bean data.
 jbsource <- t(jbsource)
 jbsource <- jbsource[3:4, ]
 colnames(jbsource) = jbsource[1, ]
@@ -318,10 +323,12 @@ jbsource <- jbsource[c("Red", "RedShinny", "OrangeSpe", "OrangeDrk", "OrangeBrgt
 jbsource <- as.numeric(jbsource)
 jb.rm.source <- vegdist(jbsource, method = "bray")
 
+#T tests between groups A, B, and source data
 t.test(jb.rm.a, jb.rm.source)
 t.test(jb.rm.b, jb.rm.source)
 
 
+#Reformatting jelly bean data for Bray-Curtis dissimilarity & PCoA
 rownames(jb) = jb[ ,2]
 jb <- jb[3:28]
 jb.rm <- vegdist(jb, method = "bray")
@@ -332,6 +339,7 @@ explainvar2 <- round(jb.pcoa$eig[2] / sum(jb.pcoa$eig), 3) * 100
 explainvar3 <- round(jb.pcoa$eig[3] / sum(jb.pcoa$eig), 3) * 100
 sum.eig <- sum(explainvar1, explainvar2, explainvar3)
 
+#Plotting PCoA
 par(mar = c(5, 5, 1, 2) + 0.1)
 plot(jb.pcoa$points[ ,1], jb.pcoa$points[ ,2], ylim = c(-0.2, 0.7),
      xlab = paste("PCoA 1 (", explainvar1, "%)", sep = ""),
