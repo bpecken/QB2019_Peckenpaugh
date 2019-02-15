@@ -1,6 +1,6 @@
 ---
 title: '11\. Worksheet: Phylogenetic Diversity - Traits'
-author: "Student Name; Z620: Quantitative Biodiversity, Indiana University"
+author: "Brooke Peckenpaugh; Z620: Quantitative Biodiversity, Indiana University"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
 geometry: margin=2.54cm
@@ -48,7 +48,7 @@ In the R code chunk below, provide the code to:
 ```{r}
 rm(list = ls())
 getwd()
-setwd("~/GitHub/QB-2019/2.Worksheets/11.PhyloTraits")
+setwd("~/GitHub/QB2019_Peckenpaugh/2.Worksheets/11.PhyloTraits")
 
 ```
 
@@ -63,7 +63,7 @@ In this exercise, we will take a phylogenetic approach to mapping phosphorus res
 ***Question 1***: Using your favorite text editor, compare the `p.isolates.fasta` file and the `p.isolates.afa` file. 
 Describe the differences that you observe between the two files. 
 
-> ***Answer 1***: 
+> ***Answer 1***: The afa file is upper case, while the fasta file is lower case. Also, the afa file has "-" to indicate breaks in the sequence, while the fasta file does not have breaks. The afa file has N's, while the fasta file does not.
 
 In the R code chunk below, do the following:
 1. read your alignment file,
@@ -79,6 +79,10 @@ for (package in package.list) {
     library(package, character.only=TRUE)
   }
 }
+
+setwd("~/GitHub/QB2019_Peckenpaugh/2.Worksheets/11.PhyloTraits/data")
+
+muscle -in ./data/p.isolates.fasta -out ./data/p.isolates.afa
 
 ```
 
