@@ -48,7 +48,6 @@ In the R code chunk below, provide the code to:
 ```{r}
 rm(list = ls())
 getwd()
-setwd("~/GitHub/QB2019_Peckenpaugh/2.Worksheets/11.PhyloTraits")
 package.list <- c('ape', 'seqinr', 'phylobase', 'adephylo', 'geiger', 'picante', 'stats', 'RColorBrewer', 'caper', 'phylolm', 'pmc', 'ggplot2', 'tidyr', 'dplyr', 'phangorn', 'pander') 
 for (package in package.list) {
   if (!require(package, character.only=TRUE, quietly=TRUE)) {
@@ -78,9 +77,12 @@ In the R code chunk below, do the following:
 4. plot the alignment using a grid to visualize rows of sequences.
 
 ```{r}
-setwd("~/GitHub/QB2019_Peckenpaugh/2.Worksheets/11.PhyloTraits/data")
-
-
+setwd("~/GitHub/QB2019_Peckenpaugh/2.Worksheets/11.PhyloTraits")
+read.aln <- read.alignment(file = "./data/p.isolates.afa", format = "fasta")
+p.DNAbin <- as.DNAbin(read.aln)
+window <- p.DNAbin[, 100:500]
+image.DNAbin(window, cex.lab = 0.50)
+grid(ncol(window), nrow(window), col = "light grey")
 ```
 
 ***Question 2***:  Make some observations about the `muscle` alignment of the 16S rRNA gene sequences for our bacterial isolates and the outgroup, *Methanosarcina*, a member of the domain Archaea. 
@@ -89,8 +91,8 @@ Move along the alignment by changing the values in the `window` object.
 a. Approximately how long are our sequence reads?  
 b. What regions do you think would are appropriate for phylogenetic inference and why?  
 
-> ***Answer 2a***:   
-> ***Answer 2b***:  
+> ***Answer 2a***:  Most sequence reads are around 700-900 bp long, while Methanosarcina is more like 1500 bp long.
+> ***Answer 2b***:  There are regions from ~200-400 and ~500-700 bp that have sites for most or all of the species, appear to be overall conserved but have sufficient variation to see differences.
 
 ## 4) MAKING A PHYLOGENETIC TREE
 
@@ -106,14 +108,19 @@ In the R code chunk below, do the following:
 4. plot the rooted tree. 
 
 ```{r}
-
-
+seq.dist.raw <- dist.dna(p.DNAbin, model = "raw", pairwise.deletion = FALSE)
+nj.tree <- bionj(seq.dist.raw)
+outgroup <- match("Methanosarcina", nj.tree$tip.label)
+nj.rooted <- root(nj.tree, outgroup, resolve.root = TRUE)
+par(mar = c(1,1,2,1) + 0.1)
+plot.phylo(nj.rooted, main = "Neighbor Joining Tree", "phylogram", use.edge.length = FALSE, direction = "right", cex = 0.6, label.offset = 1)
+add.scale.bar(cex = 0.7)
 ```
 
 ***Question 3***: What are the advantages and disadvantages of making a neighbor joining tree?   
 
 
-> ***Answer 3***:  
+> ***Answer 3***:  It is likely not as accurate or robust as a maximum likelihood or bayesian tree, but it requires significantly less computational power, so it can be done quickly. It is also not a statistical method.
  
 
 
@@ -126,8 +133,26 @@ In the R code chunk below, do the following:
 4. create a cophylogenetic plot to compare the topologies of the trees.
 
 ```{r}
+seq.dist.F84 <- dist.dna(p.DNAbin, model = "F84", pairwise.deletion = FALSE)
 
+par(mar = c(5,5,2,1) + 0.1)
+plot(seq.dist.raw, seq.dist.F84,
+     pch = 20, col = "red", las = 1, asp = 1, xlim = c(0, 0.7), ylim = c(0, 0.7),
+     xlab = "Raw distance", ylab = "F84 distance")
+abline(b = 1, a = 0, lty = 2)
+text(0.65, 0.6, "1:1")
 
+raw.tree <- bionj(seq.dist.raw)
+F84.tree <- bionj(seq.dist.F84)
+raw.outgroup <- match("Methanosarcina", raw.tree$tip.label)
+F84.outgroup <- match("Methanosarcina", F84.tree$tip.label)
+raw.rooted <- root(raw.tree, raw.outgroup, resolve.root = TRUE)
+F84.rooted <- root(F84.tree, F84.outgroup, resolve.root = TRUE)
+layout(matrix(c(1,2), 1, 2), width = c(1,1))
+par(mar = c(1, 1, 2, 0))
+plot.phylo(raw.rooted, type = "phylogram", use.edge.length = FALSE, direction = "right", show.tip.label = TRUE, adj = 0.5, cex = 0.6, label.offset = 2, main = "Raw")
+par(mar = c(1, 0, 2, 1))
+plot.phylo(F84.rooted, type = "phylogram", use.edge.length = FALSE, direction = "left", show.tip.label = TRUE, adj = 0.5, cex = 0.6, label.offset = 2, main = "F84")
 ```
 
 In the R code chunk below, do the following:  
@@ -160,8 +185,12 @@ In the R code chunk below, do the following:
 2. Plot bootstrap support values onto the tree
 
 ```{r}
-
-
+ml.bootstrap <- read.tree("./data/ml_tree/RAxML_bipartitions.T1")
+par(mar = c(1,1,2,1) + 0.1)
+plot.phylo(ml.bootstrap, type = "phylogram", direction = "right", show.tip.label = TRUE, 
+           use.edge.length = FALSE, cex = 0.6, label.offset = 1, main = "Maximum Likelihood with Support Values")
+add.scale.bar(cex = 0.7)
+nodelabels(ml.bootstrap$node.label, font = 2, bg = "white", frame = "r", cex = 0.5)
 ```
 
 ***Question 5***:  
@@ -177,11 +206,11 @@ d) Which branches have very low support?
 
 e) Should we trust these branches? 
 
-> ***Answer 5a***:   
-> ***Answer 5b***:   
-> ***Answer 5c***:   
-> ***Answer 5d***:   
-> ***Answer 5e***:   
+> ***Answer 5a***:   The maximum likelihood tree is quite different from the neighbor-joining tree, which makes sense since neighbor joining trees only use a distance matrix, while maximum likelihood take specific nucleotide states into account. Maximum likelihood is also less sensitive to the substitution model used.
+> ***Answer 5b***:   Bootstraps are a statistical method used with maximum likelihood to determine how confident we should be in the placement of each branch.
+> ***Answer 5c***:   Higher boostrap values suggest higher support.
+> ***Answer 5d***:   The internal nodes have the lowest support overall, though some other branches have very low support (e.g., WG42, LL43F).
+> ***Answer 5e***:   No, we probably should not trust these branches.
 
 
 ## 5) INTEGRATING TRAITS AND PHYLOGENY
@@ -193,8 +222,8 @@ In the R code chunk below, do the following:
 2. standardize the data for each strain by the sum of growth rates.
 
 ```{r}
-
-
+p.growth <- read.table("./data/p.isolates.raw.growth.txt", sep = "\t", header = TRUE, row.names = 1)
+p.growth.std <- p.growth / (apply(p.growth, 1, sum))
 ```
 
 ### B. Trait Manipulations
@@ -205,8 +234,19 @@ In the R code chunk below, do the following:
 3. use this function to calculate *nb* for each isolate.
 
 ```{r}
+umax <- (apply(p.growth, 1, max))
+levins <- function(p_xi = ""){
+  p = 0
+  for (i in p_xi){
+    p = p + i^2
+  }
+nb = 1 / (length(p_xi) * p)
+return(nb)
+}
 
-
+nb <- as.matrix(levins(p.growth.std))
+rownames(nb) <- row.names(p.growth)
+colnames(nb) <- c("NB")
 ```  
 
 ### C. Visualizing Traits on Trees
@@ -217,8 +257,10 @@ In the R code chunk below, do the following:
 3. remove the outgroup branch.
 
 ```{r}
-
-
+nj.tree <- bionj(seq.dist.F84)
+outgroup <- match("Methanosarcina", nj.tree$tip.label)
+nj.rooted <- root(nj.tree, outgroup, resolve.root = TRUE)
+nj.rooted <- drop.tip(nj.rooted, "Methanosarcina")
 ```
 
 In the R code chunk below, do the following:  
@@ -229,8 +271,23 @@ In the R code chunk below, do the following:
 
 
 ```{r}
+mypalette <- colorRampPalette(brewer.pal(9, "YlOrRd"))
 
+par(mar=c(1,1,1,1) + 0.1)
+x <- phylo4d(nj.rooted, p.growth.std)
+table.phylo4d(x, treetype = "phylo", symbol = "colors", show.node = TRUE,
+              cex.label = 0.5, scale = FALSE, use.edge.length = FALSE,
+              edge.color = "black", edge.width = 2, box = FALSE,
+              col = mypalette(25), pch = 15, cex.symbol = 1.25,
+              ratio.tree = 0.5, cex.legend = 1.5, center = FALSE)
 
+par(mar = c(1,5,1,5) + 0.1)
+x.nb <- phylo4d(nj.rooted, nb)
+table.phylo4d(x.nb, treetype = "phylo", symbol = "colors", show.node = TRUE,
+              cex.label = 0.5, scale = FALSE, use.edge.length = FALSE,
+              edge.color = "black", edge.width = 2, box = FALSE,
+              col = mypalette(25), pch = 15, cex.symbol = 1.25, var.label = ("NB"),
+              ratio.tree = 0.90, cex.legend = 1.5, center = FALSE)
 ```
 
 ***Question 6***:  
@@ -239,8 +296,8 @@ a) Make a hypothesis that would support a generalist-specialist trade-off.
 
 b) What kind of patterns would you expect to see from growth rate and niche breadth values that would support this hypothesis?
 
-> ***Answer 6a***:   
-> ***Answer 6b***:   
+> ***Answer 6a***:   My hypothesis is that there is a cost to being able to use a lot of different forms of phosphorus.
+> ***Answer 6b***:   I would expect to see lower maximum growth rates with higher niche breadth, and vice versa.
 
 ## 6) HYPOTHESIS TESTING
 
@@ -370,12 +427,24 @@ If not, why?
 Is there anything you could do differently that would improve your tree, especially with regard to future analyses done by your team?
 
 ```{r}
+setwd("~/Desktop/align")
 
+read.aln <- read.alignment(file = "./birds.afa", format = "fasta")
+b.DNAbin <- as.DNAbin(read.aln)
+window <- b.DNAbin[, 100:500]
+image.DNAbin(window, cex.lab = 0.50)
 
+seq.dist.k <- dist.dna(b.DNAbin, model = "K80", pairwise.deletion = FALSE)
 
-
+nj.tree <- bionj(seq.dist.k)
+outgroup <- match("Buteo", nj.tree$tip.label)
+nj.rooted <- root(nj.tree, outgroup, resolve.root = TRUE)
+par(mar = c(1,1,2,1) + 0.1)
+plot.phylo(nj.rooted, main = "Neighbor Joining Tree", "phylogram", use.edge.length = FALSE,
+           direction = "right", cex = 0.6, label.offset = 1)
+add.scale.bar(cex = 0.7)
 ```
 
-
+> This tree seems to align quite well with my (very limited) knowledge of these species! The two species in the Vireo genus group together. Also, Mniotilta and Dendroica are both warblers. Turdus and Catharus are both thrushes. One thing that could improve this tree would be to do more research to determine the most appropriate outgroup, or to add something that I know is an outgroup. I did some research and thought Buteo (hawks) might be appropriate, but I'm not totally sure. Also, in terms of future analyses, it might be worth looking into more bird sequences for this gene, though I'm not sure how much more is out there. There are more species in our data that are not included in this tree.
 
 
