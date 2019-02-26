@@ -1,6 +1,6 @@
 ---
 title: '12\.Phylogenetic Diversity - Communities'
-author: "Student Name; Z620: Quantitative Biodiversity, Indiana University"
+author: "Brooke Peckenpaugh; Z620: Quantitative Biodiversity, Indiana University"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
 geometry: margin=2.54cm
@@ -43,8 +43,17 @@ In the R code chunk below, provide the code to:
 5. load the required R source file.
 
 ```{r}
-
-
+rm(list = ls())
+getwd()
+setwd("~/GitHub/QB2019_Peckenpaugh/2.Worksheets/12.PhyloCom")
+package.list <- c('ape', 'seqinr', 'phylobase', 'adephylo', 'geiger', 'picante', 'stats', 'RColorBrewer', 'caper', 'phylolm', 'pmc', 'ggplot2', 'tidyr', 'dplyr', 'phangorn', 'pander') 
+for (package in package.list) {
+  if (!require(package, character.only=TRUE, quietly=TRUE)) {
+    install.packages(package)
+    library(package, character.only=TRUE)
+  }
+}
+source("./bin/MothurTools.R")
 ```
 
 ## 2) DESCRIPTION OF DATA
@@ -69,8 +78,10 @@ In the R code chunk below, do the following:
 6. load the taxonomic data using the `read.tax()` function from the source-code file.
 
 ```{r}
+env <- read.table("data/20130801_PondDataMod.csv", sep = ",", header = TRUE)
+env <- na.omit(env)
 
-
+comm <- read.otu(shared = "")
 ```
 
 Next, in the R code chunk below, do the following:  
